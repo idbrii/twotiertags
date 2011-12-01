@@ -15,6 +15,7 @@ working_set='. ../audio'
 # General config {{{
 temp_name='temp.tags'
 cscope=cscope
+tags_exclude_file=~/.tags_exclude.txt
 
 # }}}
 
@@ -106,7 +107,12 @@ function __append_intermediate_index {
 function __build_ctags_index {
     cut -f2 $temp_name > ctags.files
     __run_ctags $filetype
-    rm ctags.files
+
+	# filter out nonsense (from macros)
+	mv tags unfiltered.tags
+	grep -vf $tags_exclude_file unfiltered.tags > tags
+
+	rm unfiltered.tags ctags.files
 }
 
 function __build_lookupfile_index {
