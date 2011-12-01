@@ -122,10 +122,14 @@ function __build_cscope_index {
 
 # }}}
 
+# Setup {{{
+touch $root/$temp_name $root/$working_root/$temp_name
+rm $root/$temp_name $root/$working_root/$temp_name
+# }}}
+
 # Build root indexes {{{
 cd $root
 
-rm $temp_name
 __append_intermediate_index $other_set
 
 # ctags only uses the subset
@@ -143,24 +147,23 @@ __build_lookupfile_index
 # cscope needs absolute paths, so append our current dir
 __build_cscope_index
 
-rm $temp_name
-
 cd -
 # }}}
 
 # Build working set indexes {{{
 cd $root/$working_root
 
-rm $temp_name
 __append_intermediate_index $working_set
 
 # ctags only uses the subset
 __build_ctags_index $filetype
 
-rm $temp_name
-
 cd -
 # }}}
 
+# Cleanup {{{
+rm $root/$temp_name $root/$working_root/$temp_name
+# }}}
 
 # vi:et:sw=4 ts=4 fdm=marker
+
