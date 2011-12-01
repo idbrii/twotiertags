@@ -115,7 +115,10 @@ function __build_lookupfile_index {
 }
 
 function __build_cscope_index {
+    # linux requires relative names?
     cut -f2 $temp_name | sed -e"s|^|$root/|" > cscope.files
+    # and windows doesn't?
+    #cut -f2 $temp_name > cscope.files
     __run_cscope $filetype $cscope
     rm cscope.files
 }
