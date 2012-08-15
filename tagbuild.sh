@@ -41,12 +41,16 @@ function __run_ctags {
 function __run_cscope {
     filetype=$1
     cscope=$2
+    cscope_files=$3
+    if [ "$cscope_files" == "" ] ; then
+        cscope_files=cscope.files
+    fi
 
     case $filetype in
         python)
             # Requires the python package pycscope:
             #   pip install pycscope
-            pycscope.py -i cscope.files
+            pycscope.py -i $cscope_files
             ;;
         *)
             # Build cscope database
@@ -56,7 +60,7 @@ function __run_cscope {
             # May want to consider these flags
             #	-m "lang"       Use lang for multi-lingual cscope.
             #	-R              Recurse directories for files.
-            $cscope -b -q -k
+            $cscope -b -q -k -i $cscope_files
             ;;
     esac
 }
@@ -104,7 +108,7 @@ function __append_intermediate_index {
             ;;
     esac
 
-    find $folders -type f "${find_ftype[@]}" -printf "%f\t%p\t1\n" | sed -e"s/.cygdrive.c/c:/g" | sort -f >> $temp_name
+    find $folders -type f "${find_ftype[@]}" -print | sed -e"s/.cygdrive.c/c:/g" | sort -f >> $temp_name
 }
 
 function __build_ctags_index {
@@ -119,17 +123,19 @@ function __build_ctags_index {
 }
 
 function __build_lookupfile_index {
-    echo "!_TAG_FILE_SORTED	2	/2=foldcase/"> filenametags
-    sort -f $temp_name >> filenametags
+	# add config file to beginning of file list
+	cat > filelist << END
+build/pc/user.ini
+END
+    # add files
+    sort -f $temp_name >> filelist
 }
 
 function __build_cscope_index {
     # linux requires relative names?
-    cut -f2 $temp_name | sed -e"s|^|$root/|" > cscope.files
+    #cut -f2 $temp_name | sed -e"s|^|$root/|" > cscope.files
     # and windows doesn't?
-    #cut -f2 $temp_name > cscope.files
-    __run_cscope $filetype $cscope
-    rm cscope.files
+    __run_cscope $filetype $cscope $temp_name
 }
 
 # }}}
