@@ -4,11 +4,36 @@
 filetype=c
 
 root="$HOME/data/code/public-clones/gish"
-other_set='input math menu parser physics sdl video'
-
 working_root='game'
-working_set='. ../audio'
 
+if 0; then # simple setup
+    working_set='. ../audio'
+    other_set='input math menu parser physics sdl video'
+
+else # complex setup
+    # use grep to find the files that we want to build tags for
+    # this way I don't need to explicitly list everything.
+    #
+    taginclude=' input math menu parser physics sdl video'
+    # convert to grep format (previous must start with a space!)
+    taginclude=${taginclude// / -e /}
+    # all of our packages are 2 levels deep. sadly I can't put wholename here
+    # because of quoting I think.
+    find_args="-maxdepth 2 -mindepth 2 -type d"
+
+    # This is what I think I'll use the most. (engine/src/libraryname/common is
+    # for nonplatform-specific code. Ignore the platform-specific stuff.)
+    cd $root/$working_root
+    #working_set='. ../audio'
+    working_set=`find . ../engine/src $find_args -wholename '*common*' | grep $taginclude`
+    # add content
+    working_set="$working_set ../content/ ../engine/content/"
+    cd -
+    # This should be everything else (except platform-specific stuff)
+    cd $root
+    other_set=`find src engine/src $find_args -wholename '*common*' | grep -v $taginclude`
+    cd -
+fi
 # }}}
 
 
@@ -28,7 +53,27 @@ tags_exclude_file=~/.tags_exclude.txt
 function __run_ctags {
     filetype=$1
 
+    # Instead of matching the script object name, use the code name so we can
+    # jump from code to the def file.
+    SCRIPT_REGEX='/^[\t ]*(struct|enum) +([^ :]+):?.*$/t\2/'
+
     case $filetype in
+        local)
+            LANGUAGES="C,C++,C#,lua,script"
+            LANGMAPS="C#:+.ddf,C#:+.adf,C++:+.inl,script:.script"
+
+            ctags --c++-kinds=+p --fields=+iaS --extra=+q \
+                --langscript=script --languages=$LANGUAGES --langmap=$LANGMAPS \
+                --regex-script="$SCRIPT_REGEX" -L ctags.files
+            ;;
+        script)
+            LANGUAGES="script"
+            LANGMAPS="script:.script"
+
+            ctags --langdef=script \
+                --languages=$LANGUAGES --langmap=$LANGMAPS \
+                --regex-script="$SCRIPT_REGEX" -L ctags.files
+            ;;
         cpp|cs|c)
             ctags --c++-kinds=+p --fields=+iaS --extra=+q -L ctags.files
             ;;
@@ -75,6 +120,8 @@ function __append_intermediate_index {
 
     declare -a find_ftype
     case $filetype in
+        local)
+			# just fallthrough to cpp
         cpp)
             find_ftype[0]="("
             find_ftype[1]="-iname"
