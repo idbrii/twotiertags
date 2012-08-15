@@ -15,6 +15,9 @@ working_set='. ../audio'
 # General config {{{
 temp_name='temp.tags'
 cscope=cscope
+if command -v $cscope ; then
+	cscope=mlcscope
+fi
 tags_exclude_file=~/.tags_exclude.txt
 
 # }}}
