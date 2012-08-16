@@ -40,7 +40,9 @@ fi
 # General config {{{
 temp_name='temp.tags'
 cscope=cscope
-if command -v $cscope ; then
+if command -v $cscope > /dev/null ; then
+    echo
+else
 	cscope=mlcscope
 fi
 tags_exclude_file=~/.tags_exclude.txt
