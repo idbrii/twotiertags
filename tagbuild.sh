@@ -120,6 +120,13 @@ function __append_intermediate_index {
     # expects temp_name to a temporary filename for output
     folders=$*
 
+    # If you wanted to exclude a directory for some filetype, you could prepend 
+    # your find_ftype list with this:
+    #       find_ftype[ 0]="-path"
+    #       find_ftype[ 1]="*/bad_folder"
+    #       find_ftype[ 2]="-prune"
+    #       find_ftype[ 3]="-o"
+
     declare -a find_ftype
     case $filetype in
         local)
@@ -157,7 +164,7 @@ function __append_intermediate_index {
             ;;
     esac
 
-    find $folders -type f "${find_ftype[@]}" -print | sed -e"s/.cygdrive.c/c:/g" | sort -f >> $temp_name
+    find $folders "${find_ftype[@]}" -type f -print | sed -e"s/.cygdrive.c/c:/g" | sort -f >> $temp_name
 }
 
 function __build_ctags_index {
